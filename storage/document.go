@@ -10,9 +10,17 @@ type DID struct {
 	Length   int
 }
 
+func (d DID) String() string {
+	return fmt.Sprintf("DID{PageID:%d, Position:%d, Length:%d}", d.PageID, d.Position, d.Length)
+}
+
 type Document struct {
 	DID
 	Content []byte
+}
+
+func (doc Document) String() string {
+	return fmt.Sprintf("Document{DID:%s, Content:%s}", doc.DID, doc.Content)
 }
 
 func NewDocument(content []byte) (*Document, error) {

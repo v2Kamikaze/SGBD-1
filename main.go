@@ -2,33 +2,43 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"sgbd-1/storage"
 )
 
 func main() {
-
-	doc, err := storage.NewDocument([]byte("AB"))
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	page := storage.NewPage(0)
-	page.AddDocument(doc)
-	fmt.Println("Página após inserir o primeiro documento: ", page)
-	fmt.Println("Conteúdo da página: ", string(page.Content[:]))
+	doc1, _ := storage.NewDocument([]byte("AB"))
+	doc2, _ := storage.NewDocument([]byte("CDE"))
 
-	err = page.AddDocument(doc)
+	page.AddDocument(doc1)
+	fmt.Println(page)
+
+	page.AddDocument(doc2)
+	fmt.Println(page)
+
+	/* 	fmt.Println("Está cheia? ", page.IsFull())
+
+	   	page.DeleteDocument(doc1.Content)
+	   	fmt.Println(page)
+	   	fmt.Println(page.IsEmpty())
+	   	fmt.Println("Está cheia? ", page.IsFull())
+
+	   	page.DeleteDocument(doc2.Content)
+	   	fmt.Println(page)
+	   	fmt.Println(page.IsEmpty())
+	   	fmt.Println("Está cheia? ", page.IsFull())
+
+	   	page.DeleteDocument(doc2.Content)
+	   	fmt.Println("Está cheia? ", page.IsFull()) */
+
+	fmt.Println(storage.GetStorage())
+	fmt.Println(storage.GetStorage())
+
+	did, err := page.GetDID(doc2.Content[:1])
 	if err != nil {
 		fmt.Println(err)
 	}
 
-	fmt.Println("Página após inserir o segundo documento:", page)
-	fmt.Println("Conteúdo da página: ", string(page.Content[:]))
-
-	err = page.AddDocument(doc)
-	if err != nil {
-		fmt.Println(err)
-	}
+	fmt.Println(did)
 
 }
