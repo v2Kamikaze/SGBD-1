@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"sgbd-1/src/list"
 	"sync"
 )
 
@@ -10,17 +11,16 @@ var db *storage
 var lock *sync.Mutex = &sync.Mutex{}
 
 type storage struct {
-	Pages [MAX_PAGES]*Page
+	Pages     *list.PageList
+	FreePages *list.PageList
 }
 
 func GetStorage() *storage {
-
 	if db == nil {
 		db = &storage{}
 
-		for i := range db.Pages {
-			db.Pages[i] = NewPage(i)
-		}
+		db.FreePages = list.NewPageList()
+		db.FreePages = list.NewPageList()
 
 		return db
 	}

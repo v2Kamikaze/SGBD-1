@@ -1,13 +1,14 @@
-package storage
+package doc
 
 import (
 	"fmt"
 )
 
 type DID struct {
-	PageID   int
-	Position int
-	Length   int
+	PageID          int
+	ContentPosition int
+	Position        int
+	Length          int
 }
 
 func (d DID) String() string {
@@ -23,7 +24,7 @@ func (doc Document) String() string {
 	return fmt.Sprintf("Document{DID:%s, Content:%s}", doc.DID, doc.Content)
 }
 
-func NewDocument(content []byte) (*Document, error) {
+func New(content []byte) (*Document, error) {
 	len := len(content)
 	if len < 1 || len > 5 {
 		return nil, fmt.Errorf("tamanho do documento fora dos limites. tamanho: %d", len)

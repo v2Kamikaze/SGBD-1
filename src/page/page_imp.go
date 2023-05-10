@@ -1,28 +1,40 @@
-package storage
+package page
 
 import (
+	"bytes"
 	"fmt"
+	"sgbd-1/src/doc"
 )
 
 const BLOCK_SIZE = 5
 
-type Page struct {
+type PageImp struct {
 	ID        int
 	Size      int
-	Documents []*Document
+	Documents []*doc.Document
 }
 
-func (p Page) String() string {
+func (p *PageImp) String() string {
 	return fmt.Sprintf("Page{ID:%d, Size:%d, Documents:%v}", p.ID, p.Size, p.Documents)
 }
 
-func NewPage(id int) *Page {
-	return &Page{
-		ID: id,
+func New(id int) Page {
+	return &PageImp{
+		ID:        id,
+		Size:      0,
+		Documents: []*doc.Document{},
 	}
 }
 
-func (p *Page) AddDocument(doc *Document) error {
+func (p *PageImp) GetID() int {
+	return p.ID
+}
+
+func (p *PageImp) GetDocuments() []*doc.Document {
+	return p.Documents
+}
+
+func (p *PageImp) AddDocument(doc *doc.Document) error {
 
 	totalSize := p.Size + doc.Length
 
@@ -47,15 +59,15 @@ func (p *Page) AddDocument(doc *Document) error {
 	return nil
 }
 
-func (p *Page) DeleteDocument(content []byte) error {
+func (p *PageImp) DeleteDocument(content []byte) error {
 	if p.IsEmpty() {
 		return fmt.Errorf("não existe nenhum documento na página %d", p.ID)
 	}
 
 	for index := range p.Documents {
 		doc := p.Documents[index]
-		if EqualContent(doc.Content, content) {
-			p.removeDocument(doc)
+		if bytes.Equal(doc.Content, content) {
+			p.deleteDocument(doc)
 			return nil
 		}
 	}
@@ -63,31 +75,31 @@ func (p *Page) DeleteDocument(content []byte) error {
 	return nil
 }
 
-func (p *Page) GetDID(content []byte) (DID, error) {
+func (p *PageImp) GetDID(content []byte) (doc.DID, error) {
 
 	if p.IsEmpty() {
-		return DID{}, fmt.Errorf("não existe nenhum documento na página %d", p.ID)
+		return doc.DID{}, fmt.Errorf("não existe nenhum documento na página %d", p.ID)
 	}
 
 	for index := range p.Documents {
 		doc := p.Documents[index]
-		if EqualContent(doc.Content, content) {
+		if bytes.Equal(doc.Content, content) {
 			return doc.DID, nil
 		}
 	}
 
-	return DID{}, fmt.Errorf("não foi encontrado nenhum documento com conteúdo %v na página %d", string(content), p.ID)
+	return doc.DID{}, fmt.Errorf("não foi encontrado nenhum documento com conteúdo %v na página %d", string(content), p.ID)
 }
 
-func (p *Page) IsEmpty() bool {
+func (p *PageImp) IsEmpty() bool {
 	return p.Size == 0
 }
 
-func (p *Page) IsFull() bool {
+func (p *PageImp) IsFull() bool {
 	return p.Size == BLOCK_SIZE
 }
 
-func (p *Page) getDocPosition(doc *Document) int {
+func (p *PageImp) getDocPosition(doc *doc.Document) int {
 	for i, d := range p.Documents {
 		if d == doc {
 			return i
@@ -96,7 +108,7 @@ func (p *Page) getDocPosition(doc *Document) int {
 	return -1
 }
 
-func (p *Page) removeDocument(doc *Document) {
+func (p *PageImp) deleteDocument(doc *doc.Document) {
 	index := doc.Position
 	p.Size -= doc.Length
 
