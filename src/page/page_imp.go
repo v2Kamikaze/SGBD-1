@@ -8,33 +8,33 @@ import (
 
 const BLOCK_SIZE = 5
 
-type PageImp struct {
+type page struct {
 	ID        int
 	Size      int
 	Documents []*doc.Document
 }
 
-func (p *PageImp) String() string {
+func (p *page) String() string {
 	return fmt.Sprintf("Page{ID:%d, Size:%d, Documents:%v}", p.ID, p.Size, p.Documents)
 }
 
 func New(id int) Page {
-	return &PageImp{
+	return &page{
 		ID:        id,
 		Size:      0,
 		Documents: []*doc.Document{},
 	}
 }
 
-func (p *PageImp) GetID() int {
+func (p *page) GetID() int {
 	return p.ID
 }
 
-func (p *PageImp) GetDocuments() []*doc.Document {
+func (p *page) GetDocuments() []*doc.Document {
 	return p.Documents
 }
 
-func (p *PageImp) AddDocument(doc *doc.Document) error {
+func (p *page) AddDocument(doc *doc.Document) error {
 
 	totalSize := p.Size + doc.Length
 
@@ -59,7 +59,7 @@ func (p *PageImp) AddDocument(doc *doc.Document) error {
 	return nil
 }
 
-func (p *PageImp) DeleteDocument(content []byte) error {
+func (p *page) DeleteDocument(content []byte) error {
 	if p.IsEmpty() {
 		return fmt.Errorf("não existe nenhum documento na página %d", p.ID)
 	}
@@ -72,10 +72,10 @@ func (p *PageImp) DeleteDocument(content []byte) error {
 		}
 	}
 
-	return nil
+	return fmt.Errorf("não existe nenhum documento com conteúdo %s na página %d", content, p.ID)
 }
 
-func (p *PageImp) GetDID(content []byte) (doc.DID, error) {
+func (p *page) GetDID(content []byte) (doc.DID, error) {
 
 	if p.IsEmpty() {
 		return doc.DID{}, fmt.Errorf("não existe nenhum documento na página %d", p.ID)
@@ -91,15 +91,15 @@ func (p *PageImp) GetDID(content []byte) (doc.DID, error) {
 	return doc.DID{}, fmt.Errorf("não foi encontrado nenhum documento com conteúdo %v na página %d", string(content), p.ID)
 }
 
-func (p *PageImp) IsEmpty() bool {
+func (p *page) IsEmpty() bool {
 	return p.Size == 0
 }
 
-func (p *PageImp) IsFull() bool {
+func (p *page) IsFull() bool {
 	return p.Size == BLOCK_SIZE
 }
 
-func (p *PageImp) getDocPosition(doc *doc.Document) int {
+func (p *page) getDocPosition(doc *doc.Document) int {
 	for i, d := range p.Documents {
 		if d == doc {
 			return i
@@ -108,7 +108,7 @@ func (p *PageImp) getDocPosition(doc *doc.Document) int {
 	return -1
 }
 
-func (p *PageImp) deleteDocument(doc *doc.Document) {
+func (p *page) deleteDocument(doc *doc.Document) {
 	index := doc.Position
 	p.Size -= doc.Length
 

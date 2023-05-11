@@ -11,17 +11,20 @@ type PageList struct {
 	pageIds []int
 }
 
-type node struct {
-	value page.Page
-	next  *node
-}
-
 func NewPageList() *PageList {
 	return &PageList{
 		len:     0,
 		head:    nil,
 		pageIds: []int{},
 	}
+}
+
+func (l *PageList) IsEmpty() bool {
+	return l.len == 0 && l.head == nil
+}
+
+func (l *PageList) Head() *node {
+	return l.head
 }
 
 func (l *PageList) Add(p page.Page) error {
@@ -73,7 +76,13 @@ func (l *PageList) DeletePage(pageId int) (page.Page, error) {
 			if curr.next == nil {
 				l.pageIds = l.pageIds[:len(l.pageIds)-1]
 			} else {
-				l.pageIds = append(l.pageIds[:curr.value.GetID()-1], l.pageIds[curr.value.GetID():]...)
+				currPageIdx := indexOf(l.pageIds, curr.value.GetID())
+
+				if currPageIdx < 0 {
+					return nil, fmt.Errorf("não foi possível encontrar a página de id '%d'", pageId)
+				}
+
+				l.pageIds = append(l.pageIds[:currPageIdx], l.pageIds[currPageIdx+1:]...)
 			}
 			l.len--
 			return curr.value, nil
@@ -83,6 +92,16 @@ func (l *PageList) DeletePage(pageId int) (page.Page, error) {
 	}
 
 	return nil, fmt.Errorf("não foi possível encontrar a página de id '%d'", pageId)
+}
+
+func indexOf(slc []int, id int) int {
+	for i, v := range slc {
+		if v == id {
+			return i
+		}
+	}
+
+	return -1
 }
 
 func (l *PageList) ReadAll() {

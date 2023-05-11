@@ -4,7 +4,7 @@ import "sgbd-1/src/doc"
 
 type Page interface {
 	AddDocument(*doc.Document) error
-	DeleteDocument([]byte) error
+	DeleteDocument(content []byte) error
 
 	GetDID(content []byte) (doc.DID, error)
 

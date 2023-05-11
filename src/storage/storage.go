@@ -1,34 +1,13 @@
 package storage
 
-import (
-	"sgbd-1/src/list"
-	"sync"
-)
+import "sgbd-1/src/doc"
 
-const MAX_PAGES = 20
+type Storage interface {
+	Scan() []*doc.Document
+	Seek(content []byte) (doc.DID, error)
+	Delete(content []byte) error
+	Insert(content []byte) error
 
-var db *storage
-var lock *sync.Mutex = &sync.Mutex{}
-
-type storage struct {
-	Pages     *list.PageList
-	FreePages *list.PageList
-}
-
-func GetStorage() *storage {
-	if db == nil {
-		db = &storage{}
-
-		db.FreePages = list.NewPageList()
-		db.FreePages = list.NewPageList()
-
-		return db
-	}
-
-	return db
-}
-
-func (s *storage) Scan() {
-	lock.Lock()
-	defer lock.Unlock()
+	ReadFree()
+	ReadUsed()
 }
