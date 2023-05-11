@@ -23,13 +23,10 @@ func main() {
 		storage.Delete([]byte("ABC"))
 	}
 
-	storage.Delete([]byte("ABCDE"))
-
-	storage.Delete([]byte("AB"))
-	storage.Delete([]byte("AB"))
-	storage.Delete([]byte("AB"))
-
 	storage.ReadFree()
 	storage.ReadUsed()
+
+	fmt.Println(storage.Scan())
+	fmt.Println(storage.Seek([]byte("ABCDE")))
 
 }

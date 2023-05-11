@@ -52,11 +52,10 @@ func (s *storage) Scan() []*doc.Document {
 	}
 
 	curr := s.UsedPages.Head()
-	docs = append(docs, curr.Page().GetDocuments()...)
 
-	for next := curr.Next(); next != nil; {
-		docs = append(docs, next.Page().GetDocuments()...)
-		curr = next
+	for curr != nil {
+		docs = append(docs, curr.Page().GetDocuments()...)
+		curr = curr.Next()
 	}
 
 	return docs
@@ -70,15 +69,11 @@ func (s *storage) Seek(content []byte) (doc.DID, error) {
 
 	curr := s.UsedPages.Head()
 
-	if did, err := curr.Page().GetDID(content); err == nil {
-		return did, err
-	}
-
-	for next := curr.Next(); next != nil; {
+	for curr != nil {
 		if did, err := curr.Page().GetDID(content); err == nil {
 			return did, err
 		}
-		curr = next
+		curr = curr.Next()
 	}
 
 	return doc.DID{}, fmt.Errorf("não existe nenhum documento com o conteúdo '%s'", content)
