@@ -11,7 +11,7 @@ type PageList struct {
 	pageIds []int
 }
 
-func NewPageList() *PageList {
+func NewPageList() List {
 	return &PageList{
 		len:     0,
 		head:    nil,

@@ -12,8 +12,8 @@ const MAX_PAGES = 20
 var db *storage
 
 type storage struct {
-	UsedPages *list.PageList
-	FreePages *list.PageList
+	UsedPages list.List
+	FreePages list.List
 }
 
 func GetStorage() Storage {
