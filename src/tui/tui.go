@@ -170,6 +170,11 @@ func (tui *TUIDocs) parseInput(cmd string) (state, []byte, error) {
 
 func (tui *TUIDocs) RenderDocuments() {
 	docs := tui.DocsContainer(tui.storage.Scan())
+	if len(docs) == 0 {
+		fmt.Println(containerStyle.Render("Vazio"))
+		return
+	}
+
 	fmt.Println(containerStyle.Render(docs))
 }
 
