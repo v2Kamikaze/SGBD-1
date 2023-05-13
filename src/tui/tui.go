@@ -84,6 +84,11 @@ func (tui *TUIDocs) DocInfo(doc *doc.Document) string {
 	return fmt.Sprintf("PID %*s | Pos %d | Tamanho %d | Conteúdo %s", 2, strconv.Itoa(doc.PageID), doc.Position, doc.Length, doc.Content)
 }
 
+func (tui *TUIDocs) DocDID(did doc.DID) string {
+	return fmt.Sprintf("PID %*s | Pos %d | Tamanho %d", 2, strconv.Itoa(did.PageID), did.Position, did.Length)
+
+}
+
 func (tui *TUIDocs) DocsContainer(docs []*doc.Document) string {
 	var lines []string
 
@@ -102,8 +107,8 @@ func (tui *TUIDocs) DocsContainer(docs []*doc.Document) string {
 
 func (tui *TUIDocs) RenderMenu() {
 	var lines []string
-	states := []state{scan, seek, add, del, quit}
-	command := []string{"scan", "seek (param)", "add (param)", "del (param)", "quit"}
+	states := []state{scan, seek, add, del, pages, menu, quit}
+	command := []string{"scan", "seek (param)", "add (param)", "del (param)", "pages", "menu", "quit"}
 
 	space := strings.Repeat(" ", 20)
 	lines = append(lines, headerStyle.Render(fmt.Sprintf("%sMenu%s\n", space, space)))
@@ -116,6 +121,8 @@ func (tui *TUIDocs) RenderMenu() {
 }
 
 func (tui *TUIDocs) parseInput(cmd string) (state, []byte, error) {
+	cmd = strings.Replace(cmd, "\r\n", "", 1)
+
 	if strings.Contains(cmd, "scan") {
 		return scan, nil, nil
 	}
@@ -132,7 +139,7 @@ func (tui *TUIDocs) parseInput(cmd string) (state, []byte, error) {
 		if len(query) < 2 {
 			return fail, nil, fmt.Errorf("del espera um argumento do conteúdo do documento")
 		}
-		param := query[1][:len(query)]
+		param := query[1]
 		return del, []byte(param), nil
 	}
 
@@ -141,8 +148,16 @@ func (tui *TUIDocs) parseInput(cmd string) (state, []byte, error) {
 		if len(query) < 2 {
 			return fail, nil, fmt.Errorf("add espera um argumento do conteúdo do documento")
 		}
-		param := query[1][:len(query)]
+		param := query[1]
 		return add, []byte(param), nil
+	}
+
+	if strings.Contains(cmd, "menu") {
+		return menu, nil, nil
+	}
+
+	if strings.Contains(cmd, "pages") {
+		return pages, nil, nil
 	}
 
 	if strings.Contains(cmd, "quit") {
@@ -151,6 +166,44 @@ func (tui *TUIDocs) parseInput(cmd string) (state, []byte, error) {
 
 	return fail, nil, fmt.Errorf("entrada não reconhecida")
 
+}
+
+func (tui *TUIDocs) RenderDocuments() {
+	docs := tui.DocsContainer(tui.storage.Scan())
+	fmt.Println(containerStyle.Render(docs))
+}
+
+func (tui *TUIDocs) SeekDocument(content []byte) {
+	doc, err := tui.storage.Seek(content)
+
+	if err != nil {
+		tui.RenderError(err)
+		return
+	}
+
+	fmt.Println(docsInfoListContainer.Render(tui.DocDID(doc)))
+}
+
+func (tui *TUIDocs) AddDocument(content []byte) {
+	if err := tui.storage.Insert(content); err != nil {
+		tui.RenderError(err)
+		return
+	}
+
+	tui.RenderDocuments()
+}
+
+func (tui *TUIDocs) DelDocument(content []byte) {
+	if err := tui.storage.Delete(content); err != nil {
+		tui.RenderError(err)
+		return
+	}
+
+	tui.RenderDocuments()
+}
+
+func (tui *TUIDocs) RenderError(err error) {
+	fmt.Println(errorStyle.Render(err.Error()))
 }
 
 func (tui *TUIDocs) Run() {
@@ -165,27 +218,30 @@ func (tui *TUIDocs) Run() {
 			fmt.Println("Erro ao ler stdin.", err.Error())
 		}
 
-		state, param, e := tui.parseInput(cmd)
+		state, param, err := tui.parseInput(cmd)
 		if err != nil {
-			fmt.Println(errorStyle.Render(e.Error()))
+			tui.RenderError(err)
+			continue
 		}
 
 		switch state {
 		case scan:
-			fmt.Println(state)
-
+			tui.RenderDocuments()
 		case seek:
-			fmt.Println(state, param)
+			tui.SeekDocument(param)
 		case add:
-			fmt.Println(state, param)
+			tui.AddDocument(param)
 		case del:
-			fmt.Println(state, param)
+			tui.DelDocument(param)
+		case pages:
+			tui.RenderPages()
+		case menu:
+			tui.RenderMenu()
 		case fail:
-			fmt.Println(state, param)
+			tui.RenderError(err)
 		case quit:
 			return
 		}
-
 	}
 
 }

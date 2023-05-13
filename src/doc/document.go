@@ -5,10 +5,9 @@ import (
 )
 
 type DID struct {
-	PageID          int
-	ContentPosition int
-	Position        int
-	Length          int
+	PageID   int
+	Position int
+	Length   int
 }
 
 func (d DID) String() string {
@@ -18,6 +17,10 @@ func (d DID) String() string {
 type Document struct {
 	DID
 	Content []byte
+}
+
+func (doc Document) GetDID() DID {
+	return doc.DID
 }
 
 func (doc Document) String() string {

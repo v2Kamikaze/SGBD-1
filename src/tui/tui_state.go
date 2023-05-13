@@ -9,6 +9,8 @@ const (
 	add
 	quit
 	fail
+	pages
+	menu
 )
 
 func (opt state) String() string {
@@ -21,6 +23,10 @@ func (opt state) String() string {
 		return "Deletar documento"
 	case add:
 		return "Adicionar documento"
+	case pages:
+		return "Visualizar páginas"
+	case menu:
+		return "Menu"
 	case quit:
 		return "Sair"
 	}
