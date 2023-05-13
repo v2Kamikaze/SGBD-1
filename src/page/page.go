@@ -8,7 +8,8 @@ type Page interface {
 
 	GetDID(content []byte) (doc.DID, error)
 
-	GetID() int
+	Size() int
+	ID() int
 	GetDocuments() []*doc.Document
 
 	IsEmpty() bool

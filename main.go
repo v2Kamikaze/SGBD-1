@@ -1,19 +1,21 @@
 package main
 
 import (
-	"fmt"
-	"os"
+	"sgbd-1/src/storage"
 	"sgbd-1/src/tui"
-
-	tea "github.com/charmbracelet/bubbletea"
 )
 
 func main() {
-	p := tea.NewProgram(tui.InitialModel())
-	if _, err := p.Run(); err != nil {
-		fmt.Printf("Alas, there's been an error: %v", err)
-		os.Exit(1)
+
+	storage := storage.GetStorage()
+
+	for i := 0; i < 24; i++ {
+		storage.Insert([]byte("A"))
 	}
+
+	ui := tui.NewTUI()
+	ui.Run()
+
 	/*
 		storage := storage.GetStorage()
 
@@ -22,7 +24,7 @@ func main() {
 		for i := 0; i < 19; i++ {
 			fmt.Println(storage.Insert([]byte("ABC")))
 		}
-		storage.Insert([]byte("AB"))
+		storage.Insert([]byte("ABNewTUI
 		storage.Insert([]byte("AB"))
 		storage.Insert([]byte("AB"))
 

@@ -11,7 +11,7 @@ type PageList struct {
 	pageIds []int
 }
 
-func NewPageList() List {
+func NewPageList() PageDirectory {
 	return &PageList{
 		len:     0,
 		head:    nil,
@@ -29,8 +29,8 @@ func (l *PageList) Head() *node {
 
 func (l *PageList) Add(p page.Page) error {
 	for _, id := range l.pageIds {
-		if p.GetID() == id {
-			return fmt.Errorf("já existe uma página com id '%d'", p.GetID())
+		if p.ID() == id {
+			return fmt.Errorf("já existe uma página com id '%d'", p.ID())
 		}
 	}
 
@@ -50,7 +50,7 @@ func (l *PageList) Add(p page.Page) error {
 	}
 
 	l.len++
-	l.pageIds = append(l.pageIds, p.GetID())
+	l.pageIds = append(l.pageIds, p.ID())
 	return nil
 }
 
@@ -59,7 +59,7 @@ func (l *PageList) DeletePage(pageId int) (page.Page, error) {
 		return nil, fmt.Errorf("não foi possível encontrar a página de id '%d'", pageId)
 	}
 
-	if l.head.value.GetID() == pageId {
+	if l.head.value.ID() == pageId {
 		p := l.head.value
 		l.head = l.head.next
 		l.pageIds = l.pageIds[1:]
@@ -71,12 +71,12 @@ func (l *PageList) DeletePage(pageId int) (page.Page, error) {
 	prev := l.head
 
 	for curr != nil {
-		if curr.value.GetID() == pageId {
+		if curr.value.ID() == pageId {
 			prev.next = curr.next
 			if curr.next == nil {
 				l.pageIds = l.pageIds[:len(l.pageIds)-1]
 			} else {
-				currPageIdx := indexOf(l.pageIds, curr.value.GetID())
+				currPageIdx := indexOf(l.pageIds, curr.value.ID())
 
 				if currPageIdx < 0 {
 					return nil, fmt.Errorf("não foi possível encontrar a página de id '%d'", pageId)

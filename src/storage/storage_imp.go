@@ -12,19 +12,19 @@ const MAX_PAGES = 20
 var db *storage
 
 type storage struct {
-	UsedPages list.List
-	FreePages list.List
+	usedPages list.PageDirectory
+	freePages list.PageDirectory
 }
 
 func GetStorage() Storage {
 	if db == nil {
 		db = &storage{}
 
-		db.UsedPages = list.NewPageList()
-		db.FreePages = list.NewPageList()
+		db.usedPages = list.NewPageList()
+		db.freePages = list.NewPageList()
 
 		for i := 0; i < MAX_PAGES; i++ {
-			db.FreePages.Add(page.New(i))
+			db.freePages.Add(page.New(i))
 		}
 
 		return db
@@ -33,25 +33,33 @@ func GetStorage() Storage {
 	return db
 }
 
+func (s *storage) FreePages() list.PageDirectory {
+	return s.freePages
+}
+
+func (s *storage) UsedPages() list.PageDirectory {
+	return s.usedPages
+}
+
 func (s *storage) ReadFree() {
 	fmt.Println("Páginas livres")
-	s.FreePages.ReadAll()
+	s.freePages.ReadAll()
 }
 
 func (s *storage) ReadUsed() {
 	fmt.Println("Páginas usadas")
-	s.UsedPages.ReadAll()
+	s.usedPages.ReadAll()
 }
 
 func (s *storage) Scan() []*doc.Document {
 
 	var docs []*doc.Document
 
-	if s.UsedPages.IsEmpty() {
+	if s.usedPages.IsEmpty() {
 		return docs
 	}
 
-	curr := s.UsedPages.Head()
+	curr := s.usedPages.Head()
 
 	for curr != nil {
 		docs = append(docs, curr.Page().GetDocuments()...)
@@ -63,11 +71,11 @@ func (s *storage) Scan() []*doc.Document {
 
 func (s *storage) Seek(content []byte) (doc.DID, error) {
 
-	if s.UsedPages.IsEmpty() {
+	if s.usedPages.IsEmpty() {
 		return doc.DID{}, fmt.Errorf("não existe nenhum documento com o conteúdo '%s'", content)
 	}
 
-	curr := s.UsedPages.Head()
+	curr := s.usedPages.Head()
 
 	for curr != nil {
 		if did, err := curr.Page().GetDID(content); err == nil {
@@ -80,23 +88,23 @@ func (s *storage) Seek(content []byte) (doc.DID, error) {
 }
 
 func (s *storage) Delete(content []byte) error {
-	if s.UsedPages.IsEmpty() {
+	if s.usedPages.IsEmpty() {
 		return fmt.Errorf("não existe nenhuma página com conteúdo %s", content)
 	}
 
-	curr := s.UsedPages.Head()
+	curr := s.usedPages.Head()
 
 	for curr != nil {
 		if err := curr.Page().DeleteDocument(content); err == nil {
 
 			if curr.Page().IsEmpty() {
-				page, err := s.UsedPages.DeletePage(curr.Page().GetID())
+				page, err := s.usedPages.DeletePage(curr.Page().ID())
 
 				if err != nil {
 					return err
 				}
 
-				if err = s.FreePages.Add(page); err != nil {
+				if err = s.freePages.Add(page); err != nil {
 					return err
 				}
 			}
@@ -118,8 +126,8 @@ func (s *storage) Insert(content []byte) error {
 	}
 
 	// Se não existirem páginas sendo usadas, recuperar uma página das páginas livres e mover essa página para ser usada.
-	if s.UsedPages.IsEmpty() {
-		page, err := s.FreePages.DeletePage(s.FreePages.Head().Page().GetID())
+	if s.usedPages.IsEmpty() {
+		page, err := s.freePages.DeletePage(s.freePages.Head().Page().ID())
 
 		if err != nil {
 			return err
@@ -129,14 +137,14 @@ func (s *storage) Insert(content []byte) error {
 			return err
 		}
 
-		if err = s.UsedPages.Add(page); err != nil {
+		if err = s.usedPages.Add(page); err != nil {
 			return err
 		}
 
 		return nil
 	}
 
-	curr := s.UsedPages.Head()
+	curr := s.usedPages.Head()
 
 	for curr != nil {
 
@@ -148,11 +156,11 @@ func (s *storage) Insert(content []byte) error {
 		// Se não existir uma próxima página, recuperar uma página das páginas livres e mover essa página para ser usada.
 		if curr.Next() == nil {
 
-			if s.FreePages.IsEmpty() {
+			if s.freePages.IsEmpty() {
 				return fmt.Errorf("não foi possível inserir um novo documento de tamanho '%d' e conteúdo '%s', não existe espaço nas páginas e não é possível alocar mais", len(content), content)
 			}
 
-			page, err := s.FreePages.DeletePage(s.FreePages.Head().Page().GetID())
+			page, err := s.freePages.DeletePage(s.freePages.Head().Page().ID())
 
 			if err != nil {
 				return err
@@ -162,7 +170,7 @@ func (s *storage) Insert(content []byte) error {
 				return err
 			}
 
-			if err = s.UsedPages.Add(page); err != nil {
+			if err = s.usedPages.Add(page); err != nil {
 				return err
 			}
 
