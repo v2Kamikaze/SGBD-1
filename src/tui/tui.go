@@ -179,6 +179,7 @@ func (tui *TUIDocs) RenderDocuments() {
 }
 
 func (tui *TUIDocs) SeekDocument(content []byte) {
+
 	doc, err := tui.storage.Seek(content)
 
 	if err != nil {
